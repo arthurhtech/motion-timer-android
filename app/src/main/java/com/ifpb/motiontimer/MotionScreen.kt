@@ -30,19 +30,22 @@ fun MotionScreen(viewModel: MotionViewModel = viewModel()) {
     // Registro do sensor
     DisposableEffect(isTracking) {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        // Sensor de aceleração linear
-        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+        // Verifica se o sensor de acelerômetro está disponível
+        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent?) {
                 if (event == null) return
 
-                // Magnitude do vetor de aceleração
-                val magnitude = sqrt((event.values[0] * event.values[0] +
+                // Calculando a magnitude do movimento
+                val magnitudeBruta = sqrt((event.values[0] * event.values[0] +
                         event.values[1] * event.values[1] +
                         event.values[2] * event.values[2]).toDouble()).toFloat()
 
-                viewModel.processarAceleracao(magnitude, System.currentTimeMillis())
+                // Subtraindo a gravidade
+                val movimentoReal = Math.abs(magnitudeBruta - SensorManager.STANDARD_GRAVITY)
+
+                viewModel.processarAceleracao(movimentoReal, System.currentTimeMillis())
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
